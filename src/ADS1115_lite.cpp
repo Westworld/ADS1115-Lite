@@ -14,8 +14,8 @@ Adapted from adafruit ADS1015/ADS1115 library
     @brief  Instantiates a new ADS1115 class w/appropriate properties
 */
 /**************************************************************************/
-ADS1115_lite::ADS1115_lite(uint8_t i2cAddress, TwoWire& useWire) {
-	_useWire := useWire;
+ADS1115_lite::ADS1115_lite(uint8_t i2cAddress, TwoWire *useWire) {
+	_useWire = *useWire;
 	//_useWire.begin();
 	_i2cAddress = i2cAddress;
 	_gain = ADS1115_REG_CONFIG_PGA_2_048V; /* +/- 6.144V range (limited to VDD +0.3V max!) */
