@@ -16,7 +16,7 @@ Adapted from adafruit ADS1015/ADS1115 library
 /**************************************************************************/
 ADS1115_lite::ADS1115_lite(uint8_t i2cAddress, TwoWire useWire) {
 	_useWire := useWire;
-	_useWire.begin();
+	//_useWire.begin();
 	_i2cAddress = i2cAddress;
 	_gain = ADS1115_REG_CONFIG_PGA_2_048V; /* +/- 6.144V range (limited to VDD +0.3V max!) */
 	_mux = ADS1115_REG_CONFIG_MUX_DIFF_0_1; /* to default */
