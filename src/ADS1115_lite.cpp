@@ -14,23 +14,15 @@ Adapted from adafruit ADS1015/ADS1115 library
     @brief  Instantiates a new ADS1115 class w/appropriate properties
 */
 /**************************************************************************/
-ADS1115_lite::ADS1115_lite(uint8_t i2cAddress, uint8_t pinSDA, uint8_t pinSCL) {
-	Wire.begin();
-	Wire.setSDA(pinSDA);
-	Wire.setSCL(pinSCL);
+ADS1115_lite::ADS1115_lite(uint8_t i2cAddress, TwoWire useWire) {
+	_useWire := useWire;
+	_useWire.begin();
 	_i2cAddress = i2cAddress;
 	_gain = ADS1115_REG_CONFIG_PGA_2_048V; /* +/- 6.144V range (limited to VDD +0.3V max!) */
 	_mux = ADS1115_REG_CONFIG_MUX_DIFF_0_1; /* to default */
 	_rate = ADS1115_REG_CONFIG_DR_128SPS; /* to default */
 }
 
-ADS1115_lite::ADS1115_lite(uint8_t i2cAddress) {
-	Wire.begin();
-	_i2cAddress = i2cAddress;
-	_gain = ADS1115_REG_CONFIG_PGA_2_048V; /* +/- 6.144V range (limited to VDD +0.3V max!) */
-	_mux = ADS1115_REG_CONFIG_MUX_DIFF_0_1; /* to default */
-	_rate = ADS1115_REG_CONFIG_DR_128SPS; /* to default */
-}
 
 /**************************************************************************/
 /*!
@@ -38,11 +30,11 @@ ADS1115_lite::ADS1115_lite(uint8_t i2cAddress) {
 */
 /**************************************************************************/
 bool ADS1115_lite::testConnection() {
-	Wire.beginTransmission(_i2cAddress);
-	Wire.write(ADS1115_REG_POINTER_CONVERT);
-	Wire.endTransmission();
-	Wire.requestFrom(_i2cAddress, (uint8_t)2);
-	if (Wire.available()) {return 1;}
+	_useWire.beginTransmission(_i2cAddress);
+	_useWire.write(ADS1115_REG_POINTER_CONVERT);
+	_useWire.endTransmission();
+	_useWire.requestFrom(_i2cAddress, (uint8_t)2);
+	if (_useWire.available()) {return 1;}
 	return 0;
 }
 
@@ -119,11 +111,11 @@ void ADS1115_lite::triggerConversion() {
 		config |= ADS1115_REG_CONFIG_OS_SINGLE;
 
 	// Write config register to the ADC
-		Wire.beginTransmission(_i2cAddress);
-		Wire.write(ADS1115_REG_POINTER_CONFIG);
-		Wire.write((uint8_t)(config>>8));
-		Wire.write((uint8_t)(config & 0xFF));
-		Wire.endTransmission();
+		_useWire.beginTransmission(_i2cAddress);
+		_useWire.write(ADS1115_REG_POINTER_CONFIG);
+		_useWire.write((uint8_t)(config>>8));
+		_useWire.write((uint8_t)(config & 0xFF));
+		_useWire.endTransmission();
 }
 
 /**************************************************************************/
@@ -136,12 +128,12 @@ int16_t ADS1115_lite::getConversion() {  // Wait for the conversion to complete
       } while(!isConversionDone());
 	  
   // Read the conversion results
-	Wire.beginTransmission(_i2cAddress); //Sets the Address of the ADS1115.
-	Wire.write(ADS1115_REG_POINTER_CONVERT); //queue the data to be sent, in this case modify the pointer register so that the following RequestFrom reads the conversion register
-	Wire.endTransmission(); //Send the data
+	_useWire.beginTransmission(_i2cAddress); //Sets the Address of the ADS1115.
+	_useWire.write(ADS1115_REG_POINTER_CONVERT); //queue the data to be sent, in this case modify the pointer register so that the following RequestFrom reads the conversion register
+	_useWire.endTransmission(); //Send the data
 	
-	Wire.requestFrom(_i2cAddress, (uint8_t)2); //Request the 2 byte conversion register
-return ((Wire.read() << 8) | Wire.read()); //Read each byte.  Shift the first byte read 8 bits to the left and OR it with the second byte.
+	_useWire.requestFrom(_i2cAddress, (uint8_t)2); //Request the 2 byte conversion register
+return ((_useWire.read() << 8) | _useWire.read()); //Read each byte.  Shift the first byte read 8 bits to the left and OR it with the second byte.
 
 }
 /**************************************************************************/
@@ -151,10 +143,10 @@ return ((Wire.read() << 8) | Wire.read()); //Read each byte.  Shift the first by
 /**************************************************************************/
 bool ADS1115_lite::isConversionDone() {
 	
-	Wire.beginTransmission(_i2cAddress); //Sets the Address of the ADS1115.
-	Wire.write(ADS1115_REG_POINTER_CONFIG); //queue the data to be sent, in this case modify the pointer register so that the following RequestFrom reads the config register
-	Wire.endTransmission(); //Set the stop bit
+	_useWire.beginTransmission(_i2cAddress); //Sets the Address of the ADS1115.
+	_useWire.write(ADS1115_REG_POINTER_CONFIG); //queue the data to be sent, in this case modify the pointer register so that the following RequestFrom reads the config register
+	_useWire.endTransmission(); //Set the stop bit
 	
-	Wire.requestFrom(_i2cAddress, (uint8_t)2); //Request 2 byte config register
-  return ((Wire.read() << 8) | Wire.read())>>15 ; //Read 2 bytes.  Return the most signifagant bit
+	_useWire.requestFrom(_i2cAddress, (uint8_t)2); //Request 2 byte config register
+  return ((_useWire.read() << 8) | _useWire.read())>>15 ; //Read 2 bytes.  Return the most signifagant bit
 }
